@@ -3,210 +3,612 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>通路毛利與補差額試算工具</title>
+<title>毛利試算表</title>
 <style>
 :root{
-  --navy:#1e3a5f;--blue:#2563eb;--green:#16a34a;--red:#dc2626;--amber:#d97706;--orange:#b45309;
-  --bg:#f0f4f8;--border:#e2e8f0;--text:#1e293b;--muted:#64748b;--input:#fffbea;--calc:#f8fafc;
+  --navy:#66727F;
+  --blue:#8FA7BC;
+  --green:#91A99A;
+  --red:#C69793;
+  --amber:#B79E84;
+  --purple:#9A91AF;
+
+  --bg:#F8F7F5;
+  --border:#DDD9D3;
+  --text:#4F545B;
+  --muted:#8C9198;
+  --input:#FFFFFF;
+  --calc:#F3F2EF;
+  --white:#FFFFFF;
+
+  --c-price:#D6E2EB;
+  --c-cost:#E2DCEB;
+  --c-margin:#758AA0;
+  --c-act:#D2DCE7;
+  --c-watsons:#CDD6D0;
+  --c-vendor:#D7E5DB;
+  --c-ref:#E7EFE4;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,"Microsoft JhengHei",Arial,sans-serif;background:var(--bg);color:var(--text);font-size:13px;}
-.hdr{background:var(--navy);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;}
-.hdr h1{font-size:17px;font-weight:800}.hdr p{font-size:11px;opacity:.72;margin-top:3px;line-height:1.45}.hdr-btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-.btn{padding:7px 14px;border-radius:7px;border:none;cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap}.btn:hover{opacity:.86}.btn-outline{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.45)}.btn-add{background:var(--blue);color:#fff}.btn-export{background:var(--green);color:#fff}.btn-del{background:#fee2e2;color:var(--red);border:1px solid #fca5a5;font-size:11px;padding:5px 10px}
-.summary{display:flex;gap:12px;padding:14px 20px;background:#fff;border-bottom:1px solid var(--border);flex-wrap:wrap}.card{background:#f8fafc;border:1px solid var(--border);border-radius:9px;padding:10px 14px;min-width:155px;flex:1;max-width:260px}.card-lbl{font-size:10px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.06em}.card-val{font-size:21px;font-weight:900;margin-top:3px}.card-sub{font-size:11px;color:#94a3b8;margin-top:1px;line-height:1.35}
-.toolbar{padding:10px 20px;display:flex;gap:10px;align-items:center;background:#fff;border-bottom:1px solid var(--border);flex-wrap:wrap}.tip{font-size:12px;color:var(--muted);line-height:1.5}.legend{display:inline-flex;align-items:center;gap:5px;margin-left:4px}.dot{display:inline-block;width:14px;height:14px;border-radius:4px;border:1px solid #ddd;vertical-align:middle}
-.refbar{padding:10px 20px;display:flex;gap:10px;align-items:center;background:#f8fafc;border-bottom:1px solid var(--border);flex-wrap:wrap}.refbar b{font-size:12px;color:var(--navy)}.refbar label{font-size:11px;color:var(--muted);font-weight:800;display:flex;align-items:center;gap:5px}.refbar input{border:1px solid #cbd5e1;border-radius:6px;padding:5px 7px;font-size:12px;min-width:78px;background:#fff;outline:none}.refbar input:focus{border-color:#93c5fd;background:#eff6ff;color:#1d4ed8}
-.tbl-wrap{overflow:auto;padding:16px 20px 28px}table{border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 5px rgba(0,0,0,.08);min-width:max-content;width:100%}
-.sec th{font-size:10px;font-weight:900;letter-spacing:.11em;padding:6px 8px;text-align:center;color:rgba(255,255,255,.96);white-space:nowrap}.s0{background:#1e3a5f}.s1{background:#475569}.s2{background:#15803d}.s3{background:#4338ca}.s4{background:#9a3412}.s5{background:#b45309}.s6{background:#15803d}.s7{background:#374151}.s8{background:#0369a1}
-.col-hdr th{background:#f1f5f9;color:#475569;font-size:10px;font-weight:900;padding:8px 6px;white-space:nowrap;text-align:right;border-bottom:2px solid var(--border)}.col-hdr .l{text-align:left}tbody td{border-bottom:1px solid #eef2f7;padding:4px 5px;vertical-align:middle}tbody tr:hover td{background:#f0f7ff!important}
-.sticky{position:sticky;left:0;z-index:2;min-width:240px;max-width:320px;box-shadow:2px 0 5px rgba(0,0,0,.07)}thead .sticky{z-index:4;background:#f1f5f9}.sec .sticky{z-index:5;background:#1e3a5f}
-.inp{width:100%;border:1px solid transparent;background:var(--input);color:var(--text);font-size:12px;padding:5px 6px;border-radius:6px;outline:none;font-family:inherit;min-width:72px}.inp[type=number]{text-align:right}.inp[type=text]{text-align:left;font-weight:600;min-width:230px}.inp:hover{border-color:#cbd5e1;background:#fff}.inp:focus{background:#eff6ff;border:1px solid #93c5fd;color:#1d4ed8}
-.sel{border:1px solid #cbd5e1;background:#fff;font-size:11px;padding:4px 5px;border-radius:5px;cursor:pointer;outline:none;min-width:68px}.sel-type{width:66px;font-weight:900}.sel-buy{color:var(--blue)}.sel-sell{color:var(--amber)}.sel-act{min-width:104px}.sel:focus{border-color:#93c5fd;background:#eff6ff}
-.c{text-align:right;padding:7px 8px;font-size:13px;white-space:nowrap;background:var(--calc);font-weight:800}.c-l{text-align:left;padding:7px 8px;font-size:12px;white-space:nowrap;background:var(--calc);font-weight:800}.pos{color:var(--green)!important;font-weight:900}.neg{color:var(--red)!important;font-weight:900}.nu{color:#94a3b8!important;font-weight:800}.amber{color:var(--amber)!important;font-weight:900}.navy{color:var(--navy)!important;font-weight:900}
-.sep{border-left:3px solid var(--border)!important}.input-bg{background:#fffbea!important}.calc-bg{background:#f8fafc!important}.warn-bg{background:#fee2e2!important;color:var(--red)!important;font-weight:900}.ok-bg{background:#dcfce7!important;color:#15803d!important;font-weight:900}.soft-warn{background:#fffbeb!important;color:#b45309!important;font-weight:900}.m35{background:#fef3c7!important}.m30{background:#fefce8!important}.m25{background:#f0fdf4!important}.m20{background:#dcfce7!important}.act-bg{background:#eff6ff!important}
-.result-pill{display:inline-block;border-radius:999px;padding:5px 16px;min-width:72px;text-align:center;font-size:12px;font-weight:900}.pill-good{background:#dcfce7;color:#15803d}.pill-loss{background:#fee2e2;color:#dc2626}
-tfoot td{background:#f1f5f9;font-weight:900;font-size:13px;border-top:2px solid var(--border);padding:9px 7px;text-align:right}tfoot .sticky{z-index:3;background:#f1f5f9;text-align:left!important;color:var(--navy)}.toast{position:fixed;bottom:20px;right:20px;background:#1e293b;color:#fff;padding:10px 16px;border-radius:9px;font-size:12px;font-weight:800;opacity:0;transition:opacity .25s;pointer-events:none;z-index:9999}.toast.on{opacity:1}
-@media(max-width:900px){.hdr{align-items:flex-start;flex-direction:column}.sticky{min-width:210px;max-width:260px}.inp[type=text]{min-width:200px}}
+body{font-family:-apple-system,"Microsoft JhengHei",Arial,sans-serif;background:var(--bg);color:var(--text);font-size:15px;min-height:100vh}
+
+/* ── Top bar ── */
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:16px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;position:sticky;top:0;z-index:100;box-shadow:0 1px 6px rgba(0,0,0,.06)}
+.topbar-left{display:flex;align-items:center;gap:18px}
+.topbar-title{font-size:22px;font-weight:900;color:var(--text);letter-spacing:.02em}
+.topbar-right{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.toggle-wrap{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--muted)}
+.toggle-wrap label{font-weight:700;color:var(--text)}
+.toggle{position:relative;display:inline-block;width:44px;height:24px}
+.toggle input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#CFC9C1;border-radius:24px;transition:.3s}
+.slider:before{position:absolute;content:"";height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s}
+input:checked+.slider{background:var(--green)}
+input:checked+.slider:before{transform:translateX(20px)}
+.ref-fields{display:flex;align-items:center;gap:10px;font-size:14px}
+.ref-fields label{color:var(--muted);font-weight:700;display:flex;align-items:center;gap:6px}
+.ref-fields input{border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:13px;width:65px;background:var(--white);outline:none;color:var(--text)}
+.ref-fields input:focus{border-color:#A8C0D0;background:#EEF5F8}
+
+/* ── Buttons ── */
+.btn{padding:8px 18px;border-radius:8px;border:none;cursor:pointer;font-size:14px;font-weight:700;white-space:nowrap;transition:all 0.15s}
+.btn:hover{opacity:.85; transform: translateY(-1px)}
+.btn-add{background:var(--white);color:var(--blue);border:1.5px solid var(--blue);display:flex;align-items:center;gap:6px;font-size:15px;box-shadow:0 2px 4px rgba(30,100,180,.1)}
+.btn-del{background:var(--white);color:var(--red);border:1.5px solid var(--red);font-size:14px;padding:8px 16px;display:flex;align-items:center;justify-content:center;gap:6px;width:100%}
+.btn-export{background:var(--green);color:#fff}
+
+/* ── Main content ── */
+.main{padding:24px 28px;max-width:1800px;margin:0 auto}
+
+/* ── Product card ── */
+.product-card{background:var(--white);border-radius:14px;box-shadow:0 3px 10px rgba(0,0,0,.06);margin-bottom:24px;overflow:hidden;border:1px solid var(--border)}
+.card-inner{display:flex;gap:0}
+
+/* ── Left panel ── */
+.left-panel{
+  min-width:180px;max-width:200px;width:190px;
+  border-right:2px solid var(--border);
+  padding:28px 18px;
+  display:flex;flex-direction:column;align-items:center;gap:16px;
+  background:#FAFBFB;flex-shrink:0;
+}
+.prod-name-wrap{text-align:center;width:100%}
+.prod-name-display{font-size:20px;font-weight:900;color:var(--text);line-height:1.4;cursor:pointer;word-break:break-word;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 0;}
+.edit-icon{opacity:.3;font-size:14px;transition:opacity .15s}
+.prod-name-display:hover .edit-icon{opacity:1}
+.prod-name-input{font-size:16px;font-weight:800;text-align:center;border:2px solid #A8C0D0;border-radius:8px;background:#EEF5F8;color:#3D6880;padding:6px 8px;outline:none;width:100%;line-height:1.4}
+.divider{width:100%;border:none;border-top:1.5px dashed var(--border);margin:4px 0}
+.type-label{font-size:13px;color:var(--muted);font-weight:800;letter-spacing:.05em;text-transform:uppercase;text-align:center}
+.sel-type{border:1.5px solid var(--border);background:var(--white);font-size:15px;font-weight:800;padding:8px 10px;border-radius:8px;cursor:pointer;outline:none;width:100%;text-align:center;transition:all .2s;box-shadow:0 1px 3px rgba(0,0,0,.03)}
+.sel-type.sel-buy-colored{color:var(--blue);border-color:var(--blue)}.sel-type.sel-sell-colored{color:var(--amber);border-color:var(--amber)}
+.sel-type:focus{border-color:#A8C0D0;background:#EEF5F8}
+
+/* ── Right panel ── */
+.right-panel{flex:1;overflow-x:auto;min-width:0;padding-bottom:2px}
+
+/* ── Combined Table ── */
+.sub-table{width:100%;border-collapse:collapse;min-width:1550px;table-layout:fixed;}
+
+/* Section header row */
+.sec-row td, .sec-row th{
+  font-size:14px;font-weight:900;letter-spacing:.1em;
+  padding:12px 16px;text-align:center;color:#374151;
+  white-space:nowrap;
+  border:1px solid var(--border);
+}
+.bg-price{background:var(--c-price)}.bg-cost{background:var(--c-cost)}.bg-margin{background:var(--c-margin)}
+.bg-act{background:var(--c-act)}.bg-watsons{background:var(--c-watsons)}.bg-vendor{background:var(--c-vendor)}.bg-ref{background:var(--c-ref)}
+
+/* Column header row */
+.ch-row th{
+  background:#FAF9F6;color:#4B5563;font-size:13px;font-weight:800;
+  padding:10px 8px;text-align:center;white-space:nowrap;border:1px solid var(--border);
+}
+
+/* Data row */
+.data-row td{
+  padding:10px 8px;vertical-align:middle;font-size:15px;
+  border:1px solid var(--border);text-align:right;white-space:nowrap;
+}
+.inp-cell{background:var(--input);padding:8px;text-align:right}
+.cv{font-weight:800;background:var(--calc);white-space:nowrap;text-align:right;padding:10px 8px; transition: color 0.3s;}
+
+/* Section vertical separators */
+.sec-sep{border-left:2px solid #9CA3AF!important}
+.data-sep{border-left:2px solid #9CA3AF!important}
+.ch-sep{border-left:2px solid #9CA3AF!important}
+
+/* Value states */
+.pos-blue{color:#1E40AF!important;font-weight:900} 
+.neg-red{color:var(--red)!important;font-weight:900}
+.warn-cell{background:#FEE2E2!important;color:#991B1B!important;font-weight:900} 
+
+/* ── Inputs ── */
+.inp{width:100%;border:1px solid var(--border);background:var(--white);color:var(--text);
+  font-size:15px;font-weight:600;padding:6px 8px;border-radius:6px;outline:none;font-family:inherit;min-width:40px;text-align:right;transition:all .2s;box-shadow:inset 0 1px 2px rgba(0,0,0,.02)}
+.inp:hover{border-color:#9CA3AF}.inp:focus{background:#EEF5F8;border-color:#1E64B4;color:#1E64B4;box-shadow:0 0 0 2px rgba(30,100,180,.1)}
+.inp:disabled{background:#F3F4F6;color:#9CA3AF;border-color:#E5E7EB;box-shadow:none}
+
+.inp::-webkit-outer-spin-button,
+.inp::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.inp[type=number] {
+  -moz-appearance: textfield;
+}
+
+/* ── Inputs with Unit ── */
+.inp-unit-wrap{display:flex;align-items:center;justify-content:flex-end;gap:4px;border:1px solid var(--border);background:var(--white);padding:0 8px;border-radius:6px;transition:all .2s;box-shadow:inset 0 1px 2px rgba(0,0,0,.02)}
+.inp-unit-wrap:hover{border-color:#9CA3AF}
+.inp-unit-wrap:focus-within{border-color:#1E64B4;box-shadow:0 0 0 2px rgba(30,100,180,.1)}
+.inp-unit-wrap .inp{border:none;padding:6px 0;width:auto;flex:1;text-align:right;box-shadow:none}
+.inp-unit-wrap .inp:focus{background:transparent;box-shadow:none}
+.inp-unit-wrap .unit{font-size:13px;font-weight:800;color:var(--muted);white-space:nowrap}
+
+/* ── Selects in table ── */
+.sel{border:1px solid var(--border);background:var(--white);font-size:14px;font-weight:700;padding:6px 8px;
+  border-radius:6px;cursor:pointer;outline:none;width:100%;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.02)}
+.sel-buy-v{color:var(--blue);font-weight:800}.sel-sell-v{color:var(--amber);font-weight:800}
+.sel:focus{border-color:#1E64B4;background:#EEF5F8}
+
+.sel-base { min-width: 95px; letter-spacing: 0.05em; }
+.sel-act  { min-width: 115px; letter-spacing: 0.05em; }
+
+/* ── Pill ── */
+.pill{display:inline-block;border-radius:999px;padding:6px 20px;font-size:14px;font-weight:900;white-space:nowrap;min-width:80px;text-align:center;box-shadow:0 2px 4px rgba(0,0,0,.08)}
+.pill-good{background:#D1FAE5;color:#065F46;border:1px solid #A7F3D0}.pill-loss{background:#FEE2E2;color:#991B1B;border:1px solid #FECACA}
+
+/* ── Footer ── */
+.footer-area{padding:10px 28px;max-width:1800px;margin:0 auto}
+.footer-card{background:var(--white);border-radius:12px;border:1px solid var(--border);padding:16px 24px;margin-bottom:16px;display:flex;align-items:center;gap:16px;box-shadow:0 2px 6px rgba(0,0,0,.05)}
+.footer-label{font-size:15px;font-weight:900;color:var(--text);white-space:nowrap;min-width:80px}
+.footer-ref-note{font-size:14px;color:var(--green);font-weight:800;flex:1;text-align:center;padding:0 20px}
+.footer-table{border-collapse:collapse}
+.footer-table th{font-size:13px;font-weight:800;color:var(--muted);padding:8px 12px;text-align:right;background:#F4F1ED;white-space:nowrap;border:1px solid var(--border)}
+.footer-table td{font-size:15px;font-weight:800;padding:8px 12px;text-align:right;color:var(--text);border:1px solid var(--border)}
+
+.legend{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:13px;font-weight:800;margin-top:16px}
+.legend-item{display:flex;align-items:center;gap:6px}
+.legend-box{width:14px;height:14px;border-radius:4px;border:1px solid rgba(0,0,0,0.15)}
+.footnote{text-align:center;font-size:13px;color:var(--muted);margin-top:16px}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:24px;right:24px;background:#3D3830;color:#fff;padding:12px 20px;border-radius:10px;font-size:15px;font-weight:800;opacity:0;transition:opacity .25s;pointer-events:none;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.toast.on{opacity:1}
 </style>
 </head>
 <body>
-<div class="hdr">
-  <div>
-    <h1>🧮 通路毛利與補差額試算工具</h1>
-    <p>主軸：合約毛利是否達標 → 需補差額/件 → 我方補差後每件賺賠。毛利 35 / 30 / 25 / 20 僅為快速參考，實際判斷依各商品「合約毛利%」與目前選定的活動折扣情境。</p>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <span class="topbar-title">毛利試算表</span>
+    <button class="btn btn-add" onclick="addRow()">＋ 新增商品</button>
   </div>
-  <div class="hdr-btns">
-    <button class="btn btn-export" onclick="exportCSV()">📊 匯出 CSV</button>
-    <button class="btn btn-outline" onclick="clearAll()">🗑 重設資料</button>
+  <div class="topbar-right">
+    <div class="toggle-wrap">
+      <label class="toggle"><input id="showRefInput" type="checkbox" onchange="updSetting('showRef',this.checked)"><span class="slider"></span></label>
+      <label>顯示銷售與庫存參考（不參與毛利計算）</label>
+    </div>
+    <div class="ref-fields" id="refControls">
+      <label>第一期：<input id="refAInput" type="text" onchange="updSetting('refA',this.value)" onblur="updSetting('refA',this.value)"></label>
+      <label>第二期：<input id="refBInput" type="text" onchange="updSetting('refB',this.value)" onblur="updSetting('refB',this.value)"></label>
+      <label>庫存欄位：<input id="stockInput" type="text" onchange="updSetting('stockLabel',this.value)" onblur="updSetting('stockLabel',this.value)" style="width:80px"></label>
+    </div>
   </div>
 </div>
-<div class="summary" id="summary"></div>
-<div class="toolbar">
-  <button class="btn btn-add" onclick="addRow()">＋ 新增商品</button>
-  <span class="tip"><b>欄位說明：</b>黃色欄位可直接輸入；毛利 35/30/25/20 是快速參考；真正判斷使用「合約毛利%」與目前選定的活動折扣情境。<span class="legend"><span class="dot" style="background:#fee2e2"></span>紅色＝需補差或賠錢</span><span class="legend"><span class="dot" style="background:#dcfce7"></span>綠色＝不需補差或賺錢</span></span>
+
+<div class="main" id="cardContainer"></div>
+
+<div class="footer-area">
+  <div class="footer-card" id="footerCard"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="legend-box bg-price"></span> 價格與合約</div>
+    <div class="legend-item"><span class="legend-box bg-cost"></span> 成本結構</div>
+    <div class="legend-item"><span class="legend-box bg-margin"></span> 毛利快速參考</div>
+    <div class="legend-item"><span class="legend-box bg-act"></span> 活動折扣情境設定</div>
+    <div class="legend-item"><span class="legend-box bg-watsons"></span> 通路毛利保障試算</div>
+    <div class="legend-item"><span class="legend-box bg-vendor"></span> 公司實際損益</div>
+    <div class="legend-item"><span class="legend-box bg-ref"></span> 銷售與庫存參考</div>
+  </div>
+  <div class="footnote">註：所有金額單位為「元」，除非另有說明。</div>
 </div>
-<div class="refbar">
-  <b>銷售與庫存參考欄：</b>
-  <label class="toggle"><input id="showRefInput" type="checkbox" onchange="updSetting('showRef',this.checked)"> 顯示參考欄</label>
-  <span id="refControls" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-    <label>第一期<input id="refAInput" type="text" onchange="updSetting('refA',this.value)" onblur="updSetting('refA',this.value)"></label>
-    <label>第二期<input id="refBInput" type="text" onchange="updSetting('refB',this.value)" onblur="updSetting('refB',this.value)"></label>
-    <label>庫存欄<input id="stockInput" type="text" onchange="updSetting('stockLabel',this.value)" onblur="updSetting('stockLabel',this.value)"></label>
-  </span>
-  <span class="tip">此區只供老闆與業務對照原始銷售、庫存資料，<b>不參與毛利、需補差額、賺錢/賠錢判斷</b>。例如可改成 W26 / W27、前檔 / 本檔、6月 / 7月。</span>
-</div>
-<div class="tbl-wrap">
-<table>
-  <thead>
-    <tr class="sec" id="secHeader"></tr>
-    <tr class="col-hdr" id="colHeader"></tr>
-  </thead>
-  <tbody id="tbody"></tbody>
-  <tfoot><tr id="tfoot"></tr></tfoot>
-</table>
-</div>
+
 <div class="toast" id="toast"></div>
+
 <script>
+  // 這裡控制預設顯示的範例商品
 const DEFAULTS=[
-  {name:"範例商品（一般買斷）",type:"一般",rsp:200,promo:160,purchase:100,cost:45,overhead:1.7,targetMargin:30,actBase:"Promo",actType:"單純折扣",actVal:85,w26v:0,w27v:0,w26a:0,w27a:0,stock:0,stockAmt:0}
+  {name:"商品 A",type:"一般",rsp:2000,promo:1600,purchase:1200,cost:600,overhead:1.7,targetMargin:30,actBase:"Promo",actType:"第二件 X 折",actVal:80,w26v:100,w27v:120,w26a:1600,w27a:1900,stock:150,stockAmt:9000},
+  {name:"商品 B",type:"寄賣",rsp:2500,promo:1800,purchase:0,cost:700,overhead:1.7,targetMargin:28,actBase:"Promo",actType:"單純折扣",actVal:85,w26v:80,w27v:90,w26a:1400,w27a:1600,stock:200,stockAmt:14000}
 ];
-let data=[];let _uid=1;let settings={refA:"W26",refB:"W27",stockLabel:"庫存",showRef:true};
+let data=[]; let _uid=1; let settings={refA:"W26",refB:"W27",stockLabel:"庫存",showRef:true};
+
 function normalizeData(){
   data.forEach(r=>{
-    if(r.stock==null)r.stock=r.s2||0;if(r.stockAmt==null)r.stockAmt=r.sAmt||0;if(r.targetMargin==null)r.targetMargin=25;if(r.type==null)r.type="一般";
+    if(r.stock==null)r.stock=0;if(r.stockAmt==null)r.stockAmt=0;
+    if(r.targetMargin==null)r.targetMargin=25;if(r.type==null)r.type="一般";
     if(r.actBase==null)r.actBase="Promo";if(r.actType==null)r.actType="單純折扣";if(r.actVal==null)r.actVal=100;
   });
   settings={refA:"W26",refB:"W27",stockLabel:"庫存",showRef:true,...settings};
 }
-function save(){localStorage.setItem("wt_margin_tool_public_sample_v1",JSON.stringify({data,uid:_uid,settings}));toast("✅ 已儲存")}
+
+// 升級至 v14，確保修復被擠壓的表頭
+function save(){localStorage.setItem("wt_margin_v14",JSON.stringify({data,uid:_uid,settings}));toast("✅ 已儲存")}
 function load(){
-  const keys=["wt_margin_tool_public_sample_v1"];
-  for(const key of keys){try{const s=JSON.parse(localStorage.getItem(key)||"null");if(s&&Array.isArray(s.data)&&s.data.length){data=s.data;_uid=s.uid||data.length+1;settings=s.settings||settings;normalizeData();return}}catch(e){}}
-  data=DEFAULTS.map(d=>({...d,id:_uid++}));save()
+  const keys=["wt_margin_v14"];
+  for(const k of keys){try{const s=JSON.parse(localStorage.getItem(k)||"null");if(s&&Array.isArray(s.data)&&s.data.length){data=s.data;_uid=s.uid||data.length+1;settings=s.settings||settings;normalizeData();return}}catch(e){}}
+  data=DEFAULTS.map(d=>({...d,id:_uid++}));save();
 }
-const fM=n=>{if(n==null||isNaN(n))return"—";const v=Math.round(n);return(v<0?"-$":"$")+Math.abs(v).toLocaleString()};
+
+const fM=n=>{if(n==null||isNaN(n))return"—";const v=Math.round(n);return v.toLocaleString()};
 const fN=n=>{if(n==null||isNaN(n))return"—";return Math.round(n).toLocaleString()};
-const cc=n=>n>0.005?"c pos":n<-0.005?"c neg":"c nu";const moneyClass=n=>n>0.005?"pos":n<-0.005?"neg":"nu";
+const posNeg=n=>n>0.5?"pos-blue":n<-0.5?"neg-red":"nu";
+
 function calcActivityPrice(r){
   const base=(r.actBase==="RSP"?(+r.rsp||0):(+r.promo||0));
-  const factor=(+r.actVal||0)/100;let price=base;
-  if(r.actType==="買一送一")price=base*0.5;
-  else if(r.actType==="第二件 X 折")price=(base+(base*factor))/2;
-  else if(r.actType==="單純折扣")price=base*factor;
+  const factor=(+r.actVal||0)/100;
+  let price=base;
+  if(r.actType==="買一送一") price = base*0.5;
+  else if(r.actType==="第二件 X 折") price = (base + (base * factor)) / 2; 
+  else if(r.actType==="單純折扣") price = base * factor;     
   return Math.round(price);
 }
+
 function calcRow(r){
-  const isBuy=r.type==="一般";const cf=Math.round((+r.cost||0)*(+r.overhead||0));const purchase=+r.purchase||0;const marginBase=isBuy?purchase:cf;const targetRate=(+r.targetMargin||0)/100;const estPrice=calcActivityPrice(r);
-  const targetProfit=marginBase*targetRate;const actualProfit=isBuy?(estPrice-purchase):(estPrice-cf);const diff=Math.max(0,targetProfit-actualProfit);
+  const isBuy=r.type==="一般";
+  const cf=Math.round((+r.cost||0)*(+r.overhead||0));
+  const purchase=+r.purchase||0;
+  
+  const marginBase=isBuy?purchase:cf;
+  const targetRate=(+r.targetMargin||0)/100;
+  const estPrice=calcActivityPrice(r);
+  
+  const targetProfit=Math.round(marginBase*targetRate);
+  const actualProfit=isBuy?(estPrice-purchase):(estPrice-cf);
+  const diff=Math.max(0,targetProfit-actualProfit);
+  
   const myBefore=isBuy?(purchase-cf):(estPrice-cf);
   const myAfter=isBuy?(myBefore-diff):(myBefore-targetProfit);
+  
   const minNoLoss=isBuy?(purchase>=cf?cf+targetProfit:null):(cf+targetProfit);
-  const m35=marginBase*.35,m30=marginBase*.30,m25=marginBase*.25,m20=marginBase*.20;
-  const gap=(+r.w27a||0)-(+r.w26a||0);const status=myAfter>=0?"賺錢":"賠錢";const statusClass=myAfter>=0?"pill-good":"pill-loss";
-  return{isBuy,cf,marginBase,estPrice,targetProfit,actualProfit,diff,myBefore,myAfter,minNoLoss,m35,m30,m25,m20,gap,status,statusClass};
+  
+  const m35=Math.round(marginBase*.35),m30=Math.round(marginBase*.30),m25=Math.round(marginBase*.25),m20=Math.round(marginBase*.20);
+  const gap=(+r.w27a||0)-(+r.w26a||0);
+  const status=myAfter>=0?"獲利":"虧損";
+  const statusClass=myAfter>=0?"pill-good":"pill-loss";
+  
+  return{isBuy,cf,marginBase,estPrice,targetProfit,actualProfit,diff,myAfter,minNoLoss,m35,m30,m25,m20,gap,status,statusClass};
 }
-function render(){renderSettings();renderHeader();renderSummary();renderBody();renderFoot()}
+
+function updateCalcCells(id) {
+  const r = data.find(x => x.id === id);
+  if(!r) return;
+  const m = calcRow(r);
+  
+  const setVal = (key, text, className) => {
+    const el = document.getElementById(`${key}_${id}`);
+    if(el) { el.innerText = text; if(className) el.className = className; }
+  };
+
+  setVal('cf', fM(m.cf), 'cv pos-blue');
+  setVal('m35', fM(m.m35), `cv ${posNeg(m.m35)} data-sep`);
+  setVal('m30', fM(m.m30), `cv ${posNeg(m.m30)}`);
+  setVal('m25', fM(m.m25), `cv ${posNeg(m.m25)}`);
+  setVal('m20', fM(m.m20), `cv ${posNeg(m.m20)}`);
+  setVal('estPrice', fM(m.estPrice), 'cv pos-blue');
+  setVal('targetProfit', fM(m.targetProfit), 'cv');
+  setVal('actualProfit', fM(m.actualProfit), `cv ${posNeg(m.actualProfit)}`);
+  setVal('diff', fM(m.diff), `cv ${m.diff>0?'warn-cell':''} ${posNeg(m.diff)}`);
+  
+  const myAfterEl = document.getElementById(`myAfter_${id}`);
+  if(myAfterEl) {
+    myAfterEl.className = `cv ${m.myAfter<0?'warn-cell':''} ${posNeg(m.myAfter)} data-sep`;
+    myAfterEl.innerHTML = `
+      <div style="display:flex; justify-content:flex-end; align-items:center; gap:8px;">
+        <span>${fM(m.myAfter)}</span>
+        <span class="pill ${m.statusClass}" style="font-size:12px; padding:3px 12px; min-width:60px">${m.status}</span>
+      </div>`;
+  }
+  
+  setVal('minNoLoss', m.minNoLoss==null?'無法不賠':fM(m.minNoLoss), 'cv pos-blue');
+  setVal('gap', (m.gap>=0?'+':'') + fM(m.gap), `cv ${posNeg(m.gap)}`);
+  
+  renderFooter();
+}
+
+function render(){renderSettings();renderCards();renderFooter()}
+
 function renderSettings(){
   document.getElementById("showRefInput").checked=!!settings.showRef;
   document.getElementById("refControls").style.display=settings.showRef?"flex":"none";
   document.getElementById("refAInput").value=settings.refA;
   document.getElementById("refBInput").value=settings.refB;
-  document.getElementById("stockInput").value=settings.stockLabel
+  document.getElementById("stockInput").value=settings.stockLabel;
 }
-function renderHeader(){
-  const a=esc(settings.refA||"第一期"),b=esc(settings.refB||"第二期"),st=esc(settings.stockLabel||"庫存");
-  document.getElementById("secHeader").innerHTML=`
-    <th class="sticky s0">商品主檔</th>
-    <th class="s1 sep" colspan="4">價格與合約</th>
-    <th class="s3 sep" colspan="3">成本結構</th>
-    <th class="s4 sep" colspan="4">毛利快速參考</th>
-    <th class="s8 sep" colspan="4">活動折扣情境設定</th>
-    <th class="s5 sep" colspan="4">屈臣氏毛利與需補差額</th>
-    <th class="s6 sep" colspan="4">我方每件賺賠判斷</th>
-    ${settings.showRef?'<th class="s2 sep" colspan="7">銷售與庫存參考（不參與毛利計算）</th>':''}
-    <th class="s7 sep">操作</th>`;
-  document.getElementById("colHeader").innerHTML=`
-    <th class="sticky l">品名</th>
-    <th class="sep">合約</th><th>RSP</th><th>促銷價</th><th>屈臣氏<br>採購報價</th>
-    <th class="sep">成本</th><th>管銷</th><th>成本含管銷</th>
-    <th class="sep m35">毛利35%</th><th class="m30">毛利30%</th><th class="m25">毛利25%</th><th class="m20">毛利20%</th>
-    <th class="sep act-bg">計算基準</th><th class="act-bg">活動類型</th><th class="act-bg">折扣% / 折</th><th class="act-bg">活動後<br>平均售價</th>
-    <th class="sep input-bg">合約毛利%</th><th title="一般＝採購報價 × 合約毛利%；寄賣＝成本含管銷 × 合約毛利%">屈臣氏應賺<br>毛利/件</th><th title="一般＝活動後平均售價 − 採購報價；寄賣＝活動後平均售價 − 成本含管銷">屈臣氏活動後<br>毛利/件</th><th class="warn-bg" title="max(0, 應賺毛利 − 活動後毛利)">需補差額/件</th>
-    <th class="sep" title="一般＝採購報價 − 成本含管銷；寄賣＝活動後平均售價 − 成本含管銷">我方補差前<br>賺賠/件</th><th title="一般＝補差前賺賠 − 需補差額；寄賣＝活動後平均售價 − 成本含管銷 − 屈臣氏應賺毛利">我方補差後<br>賺賠/件</th><th title="活動後平均售價低於此數字時，我方會開始賠錢">最低不賠售價</th><th>結果判斷</th>
-    ${settings.showRef?`<th class="sep">(${a})量</th><th>(${b})量</th><th>(${a})金額</th><th>(${b})金額</th><th>${a} vs ${b}<br>金額差額</th><th>${st}</th><th>${st}金額</th>`:''}
-    <th class="sep"></th>`;
+
+function renderCards(){
+  const rc=settings.showRef;
+  const a=esc(settings.refA||'W26'),b=esc(settings.refB||'W27'),st=esc(settings.stockLabel||'庫存');
+
+  document.getElementById('cardContainer').innerHTML=data.map(r=>{
+    const m=calcRow(r),buy=m.isBuy;
+    const minText=m.minNoLoss==null?'無法不賠':fM(m.minNoLoss);
+
+    const refSecHdr=rc?`<td class="bg-ref sec-sep" colspan="8">銷售與庫存參考（不參與毛利計算）</td>`:'';
+    const refChHdr=rc?`
+      <th class="ch-ref ch-sep">${a}<br>銷售量</th>
+      <th class="ch-ref">${b}<br>銷售量</th>
+      <th class="ch-ref">${a}<br>金額</th>
+      <th class="ch-ref">${b}<br>金額</th>
+      <th class="ch-ref">差額</th>
+      <th class="ch-ref">${st}</th>
+      <th class="ch-ref" colspan="2">${st}金額</th>`:'';
+    const refData=rc?`
+      <td class="inp-cell data-sep"><input class="inp" type="number" value="${r.w26v||0}" min="0" onchange="upd(${r.id},'w26v',+this.value||0)"></td>
+      <td class="inp-cell"><input class="inp" type="number" value="${r.w27v||0}" min="0" onchange="upd(${r.id},'w27v',+this.value||0)"></td>
+      <td class="inp-cell"><input class="inp" type="number" value="${r.w26a||0}" min="0" onchange="upd(${r.id},'w26a',+this.value||0)"></td>
+      <td class="inp-cell"><input class="inp" type="number" value="${r.w27a||0}" min="0" onchange="upd(${r.id},'w27a',+this.value||0)"></td>
+      <td class="cv ${posNeg(m.gap)}" id="gap_${r.id}">${m.gap>=0?'+':''}${fM(m.gap)}</td>
+      <td class="inp-cell"><input class="inp" type="number" value="${r.stock||0}" min="0" onchange="upd(${r.id},'stock',+this.value||0)"></td>
+      <td class="inp-cell" colspan="2"><input class="inp" type="number" value="${r.stockAmt||0}" min="0" onchange="upd(${r.id},'stockAmt',+this.value||0)"></td>`:'';
+
+    const vendorSecSpan = rc ? 3 : 11;
+    const vendorLastColSpan = rc ? 1 : 9;
+    const actValDisabled=r.actType==='買一送一'?'disabled':'';
+
+    return `
+<div class="product-card" id="card${r.id}">
+  <div class="card-inner">
+    <div class="left-panel">
+      <div class="prod-name-wrap">
+        <div class="prod-name-display" id="nameDisplay${r.id}" onclick="startEdit(${r.id})">
+          ${esc(r.name)}<span class="edit-icon">✏️</span>
+        </div>
+        <input class="prod-name-input" id="nameInput${r.id}" type="text" value="${esc(r.name)}"
+          style="display:none" onblur="endEdit(${r.id})" onkeydown="if(event.key==='Enter')this.blur()">
+      </div>
+      <hr class="divider">
+      <div class="type-label">合約類型</div>
+      <select class="sel-type ${buy?'sel-buy-colored':'sel-sell-colored'}" onchange="updType(${r.id},this.value)">
+        <option ${buy?'selected':''}>一般</option>
+        <option ${!buy?'selected':''}>寄賣</option>
+      </select>
+      <hr class="divider">
+      <button class="btn btn-del" onclick="delRow(${r.id})">🗑 刪除商品</button>
+    </div>
+
+    <div class="right-panel">
+      <table class="sub-table">
+        <colgroup>
+          <col style="width: 5%">
+          <col style="width: 7%">
+          <col style="width: 7%">
+          <col style="width: 7%">
+          <col style="width: 6%">
+          <col style="width: 6%">
+          <col style="width: 7%">
+          <col style="width: 5.5%"> 
+          <col style="width: 5.5%"> 
+          <col style="width: 5.5%"> 
+          <col style="width: 5.5%"> 
+          <col style="width: 10%">  
+          <col style="width: 11%">  
+          <col style="width: 5%">   
+          <col style="width: 7%">   
+        </colgroup>
+        <tr class="sec-row">
+          <td class="bg-price" colspan="4">價格與合約</td>
+          <td class="bg-cost sec-sep" colspan="3">成本結構</td>
+          <td class="bg-margin sec-sep" colspan="4">毛利快速參考</td>
+          <td class="bg-act sec-sep" colspan="4">活動折扣情境設定</td>
+        </tr>
+        <tr class="ch-row">
+          <th class="ch-price">合約</th>
+          <th class="ch-price">建議售價<br>（白標價）</th>
+          <th class="ch-price">促銷價</th>
+          <th class="ch-price">採購報價</th>
+          <th class="ch-cost ch-sep">成本</th>
+          <th class="ch-cost">管銷</th>
+          <th class="ch-cost">成本含管銷</th>
+          <th class="ch-margin ch-sep">35%</th>
+          <th class="ch-margin">30%</th>
+          <th class="ch-margin">25%</th>
+          <th class="ch-margin">20%</th>
+          <th class="ch-act ch-sep">計算基準</th>
+          <th class="ch-act">活動類型</th>
+          <th class="ch-act">折扣%/折</th>
+          <th class="ch-act">活動後均價</th>
+        </tr>
+        <tr class="data-row">
+          <td class="inp-cell">
+            <select class="sel ${buy?'sel-buy-v':'sel-sell-v'}" onchange="updType(${r.id},this.value)">
+              <option ${buy?'selected':''}>一般</option>
+              <option ${!buy?'selected':''}>寄賣</option>
+            </select>
+          </td>
+          <td class="inp-cell"><input class="inp" type="number" value="${r.rsp||0}" min="0" onchange="upd(${r.id},'rsp',+this.value||0)"></td>
+          <td class="inp-cell"><input class="inp" type="number" value="${r.promo||0}" min="0" onchange="upd(${r.id},'promo',+this.value||0)"></td>
+          <td class="inp-cell" id="pc${r.id}" style="text-align:right;">
+            ${buy?`<input class="inp" type="number" value="${r.purchase||0}" min="0" onchange="upd(${r.id},'purchase',+this.value||0)">`
+                :`<div style="text-align:center;color:var(--amber);font-weight:900;padding:4px; font-size:18px;">－</div>`}
+          </td>
+          <td class="inp-cell data-sep"><input class="inp" type="number" value="${r.cost||0}" min="0" onchange="upd(${r.id},'cost',+this.value||0)"></td>
+          <td class="inp-cell"><input class="inp" type="number" step="0.01" value="${r.overhead||0}" min="0" onchange="upd(${r.id},'overhead',+this.value||0)"></td>
+          <td class="cv pos-blue" id="cf_${r.id}">${fM(m.cf)}</td>
+          <td class="cv ${posNeg(m.m35)} data-sep" id="m35_${r.id}" style="padding:10px 4px;">${fM(m.m35)}</td>
+          <td class="cv ${posNeg(m.m30)}" id="m30_${r.id}" style="padding:10px 4px;">${fM(m.m30)}</td>
+          <td class="cv ${posNeg(m.m25)}" id="m25_${r.id}" style="padding:10px 4px;">${fM(m.m25)}</td>
+          <td class="cv ${posNeg(m.m20)}" id="m20_${r.id}" style="padding:10px 4px;">${fM(m.m20)}</td>
+          
+          <td class="inp-cell data-sep">
+            <select class="sel sel-base" onchange="upd(${r.id},'actBase',this.value)">
+              <option value="RSP" ${r.actBase==='RSP'?'selected':''}>建議售價</option>
+              <option value="Promo" ${r.actBase==='Promo'?'selected':''}>促銷價</option>
+            </select>
+          </td>
+          <td class="inp-cell">
+            <select class="sel sel-act" onchange="updActType(${r.id},this.value)">
+              <option ${r.actType==='買一送一'?'selected':''}>買一送一</option>
+              <option ${r.actType==='第二件 X 折'?'selected':''}>第二件 X 折</option>
+              <option ${r.actType==='單純折扣'?'selected':''}>單純折扣</option>
+            </select>
+          </td>
+          <td class="inp-cell">
+            <div class="inp-unit-wrap">
+              <input class="inp" type="number" step="1"
+                     value="${r.actVal||0}"
+                     ${actValDisabled} style="text-align:center; min-width:30px; padding:6px 2px;"
+                     onchange="updActVal(${r.id},this.value)">
+              <span class="unit">%</span>
+            </div>
+          </td>
+          <td class="cv pos-blue" id="estPrice_${r.id}">${fM(m.estPrice)}</td>
+        </tr>
+
+        <tr class="sec-row">
+          <td class="bg-watsons" colspan="4">通路毛利保障試算</td>
+          <td class="bg-vendor sec-sep" colspan="${vendorSecSpan}">公司實際損益</td>
+          ${refSecHdr}
+        </tr>
+        <tr class="ch-row">
+          <th class="ch-watsons">合約毛利%</th>
+          <th class="ch-watsons">應收毛利/件</th>
+          <th class="ch-watsons">實際毛利/件</th>
+          <th class="ch-warn">補貼金額/件</th>
+        <th class="ch-vendor ch-sep" colspan="2" style="line-height:1.3; white-space:normal; padding-left:4px; padding-right:4px;">
+           每件最終賺賠<br>
+          <span style="font-size:10px;font-weight:normal;color:#6B7280;display:block;margin-top:2px;">(補貼通路後，公司每件實際淨賺)</span>
+        </th>
+          <th class="ch-vendor" colspan="${vendorLastColSpan}" style="line-height:1.3; white-space:normal;">商品不賠錢<br>底價/件</th>
+          ${refChHdr}
+        </tr>
+        <tr class="data-row">
+          <td class="inp-cell">
+            <input class="inp" type="number" value="${r.targetMargin||0}" min="0" max="100" step="0.1" style="text-align:center;font-weight:900" onchange="upd(${r.id},'targetMargin',+this.value||0)">
+          </td>
+          <td class="cv" id="targetProfit_${r.id}">${fM(m.targetProfit)}</td>
+          <td class="cv ${posNeg(m.actualProfit)}" id="actualProfit_${r.id}">${fM(m.actualProfit)}</td>
+          <td class="cv ${m.diff>0?'warn-cell':''} ${posNeg(m.diff)}" id="diff_${r.id}">${fM(m.diff)}</td>
+          
+          <td class="cv ${m.myAfter<0?'warn-cell':''} ${posNeg(m.myAfter)} data-sep" colspan="2" id="myAfter_${r.id}">
+            <div style="display:flex; justify-content:flex-end; align-items:center; gap:8px;">
+              <span>${fM(m.myAfter)}</span>
+              <span class="pill ${m.statusClass}" style="font-size:12px; padding:3px 12px; min-width:60px">${m.status}</span>
+            </div>
+          </td>
+          
+          <td class="cv pos-blue" colspan="${vendorLastColSpan}" id="minNoLoss_${r.id}">${minText}</td>
+          ${refData}
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>`;
+  }).join('');
 }
-function renderSummary(){
-  const total=data.length,needDiff=data.filter(r=>calcRow(r).diff>0).length,loss=data.filter(r=>calcRow(r).myAfter<0).length,normal=data.filter(r=>r.type==="一般").length,consign=data.filter(r=>r.type==="寄賣").length;
-  document.getElementById("summary").innerHTML=[
-    {l:"商品總數",v:`${total} SKU`,s:`一般 ${normal}／寄賣 ${consign}`,c:"var(--navy)"},
-    {l:"需補差商品",v:`${needDiff} SKU`,s:"屈臣氏活動後毛利不足",c:needDiff?"var(--red)":"var(--green)"},
-    {l:"賠錢商品",v:`${loss} SKU`,s:"我方補差後每件為負數",c:loss?"var(--red)":"var(--green)"},
-    {l:"判斷基準",v:"單件",s:"結果只顯示賺錢或賠錢",c:"var(--blue)"}
-  ].map(x=>`<div class="card"><div class="card-lbl">${x.l}</div><div class="card-val" style="color:${x.c}">${x.v}</div><div class="card-sub">${x.s}</div></div>`).join("")
+
+function renderFooter(){
+  const rc=settings.showRef;
+  const s26v=data.reduce((s,r)=>s+(+r.w26v||0),0),s27v=data.reduce((s,r)=>s+(+r.w27v||0),0);
+  const tw6=data.reduce((s,r)=>s+(+r.w26a||0),0),tw7=data.reduce((s,r)=>s+(+r.w27a||0),0),gap=tw7-tw6;
+  const stock=data.reduce((s,r)=>s+(+r.stock||0),0),stockAmt=data.reduce((s,r)=>s+(+r.stockAmt||0),0);
+  const a=esc(settings.refA||'W26'),b=esc(settings.refB||'W27'),st=esc(settings.stockLabel||'庫存');
+
+  let inner=`<div class="footer-label">共 ${data.length} 筆商品</div>`;
+  if(rc){
+    inner+=`<div class="footer-ref-note">銷售與庫存參考合計（不參與毛利計算）</div>
+    <table class="footer-table">
+      <tr>
+        <th>${a}<br>銷售量</th><th>${b}<br>銷售量</th><th>${a}金額</th><th>${b}金額</th><th>差額</th><th>${st}</th><th>${st}金額</th>
+      </tr>
+      <tr>
+        <td>${fN(s26v)}</td><td>${fN(s27v)}</td><td>${fM(tw6)}</td><td>${fM(tw7)}</td>
+        <td style="color:${gap>=0?'var(--green)':'var(--red)'}">${gap>=0?'+':''}${fM(gap)}</td>
+        <td>${fN(stock)}</td><td>${fM(stockAmt)}</td>
+      </tr>
+    </table>`;
+  }
+  document.getElementById('footerCard').innerHTML=inner;
 }
-function renderBody(){
-  document.getElementById("tbody").innerHTML=data.map((r,idx)=>{const m=calcRow(r),bg=idx%2===0?"#fff":"#f8fbff",buy=m.isBuy;const pur=buy?`<input class="inp" type="number" value="${r.purchase||0}" min="0" onchange="upd(${r.id},'purchase',+this.value||0)">`:`<span class="amber" style="display:block;text-align:center;padding:5px 4px">寄賣</span>`;const diffCls=m.diff>0?"c warn-bg":"c ok-bg";const afterCls=m.myAfter<0?"c warn-bg":"c ok-bg";const minText=m.minNoLoss==null?"無法不賠":fM(m.minNoLoss);const refCells=settings.showRef?`
-    <td class="sep"><input class="inp" type="number" value="${r.w26v||0}" min="0" onchange="upd(${r.id},'w26v',+this.value||0)"></td>
-    <td><input class="inp" type="number" value="${r.w27v||0}" min="0" onchange="upd(${r.id},'w27v',+this.value||0)"></td>
-    <td><input class="inp" type="number" value="${r.w26a||0}" min="0" onchange="upd(${r.id},'w26a',+this.value||0)"></td>
-    <td><input class="inp" type="number" value="${r.w27a||0}" min="0" onchange="upd(${r.id},'w27a',+this.value||0)"></td>
-    <td class="${cc(m.gap)}">${m.gap>=0?'+':''}${fM(m.gap)}</td>
-    <td><input class="inp" type="number" value="${r.stock||0}" min="0" onchange="upd(${r.id},'stock',+this.value||0)"></td>
-    <td><input class="inp" type="number" value="${r.stockAmt||0}" min="0" onchange="upd(${r.id},'stockAmt',+this.value||0)"></td>`:'';return `<tr id="row${r.id}">
-    <td class="sticky" style="background:${bg}"><input class="inp" type="text" value="${esc(r.name)}" onchange="upd(${r.id},'name',this.value)"></td>
-    <td class="sep"><select class="sel sel-type ${buy?'sel-buy':'sel-sell'}" onchange="updType(${r.id},this.value)"><option ${buy?'selected':''}>一般</option><option ${!buy?'selected':''}>寄賣</option></select></td>
-    <td><input class="inp" type="number" value="${r.rsp||0}" min="0" onchange="upd(${r.id},'rsp',+this.value||0)"></td>
-    <td><input class="inp" type="number" value="${r.promo||0}" min="0" onchange="upd(${r.id},'promo',+this.value||0)"></td>
-    <td id="pc${r.id}">${pur}</td>
-    <td class="sep"><input class="inp" type="number" value="${r.cost||0}" min="0" onchange="upd(${r.id},'cost',+this.value||0)"></td>
-    <td><input class="inp" type="number" value="${r.overhead||0}" min="0" step="0.1" onchange="upd(${r.id},'overhead',+this.value||1)"></td>
-    <td class="c navy">${fM(m.cf)}</td>
-    <td class="c m35 ${moneyClass(m.m35)} sep">${fM(m.m35)}</td>
-    <td class="c m30 ${moneyClass(m.m30)}">${fM(m.m30)}</td>
-    <td class="c m25 ${moneyClass(m.m25)}">${fM(m.m25)}</td>
-    <td class="c m20 ${moneyClass(m.m20)}">${fM(m.m20)}</td>
-    <td class="sep act-bg"><select class="sel" onchange="upd(${r.id},'actBase',this.value)"><option value="RSP" ${r.actBase==='RSP'?'selected':''}>定價RSP</option><option value="Promo" ${r.actBase==='Promo'?'selected':''}>促銷價</option></select></td>
-    <td class="act-bg"><select class="sel sel-act" onchange="updActType(${r.id},this.value)"><option ${r.actType==='買一送一'?'selected':''}>買一送一</option><option ${r.actType==='第二件 X 折'?'selected':''}>第二件 X 折</option><option ${r.actType==='單純折扣'?'selected':''}>單純折扣</option></select></td>
-    <td class="act-bg"><input class="inp" style="text-align:center" type="number" value="${r.actVal||0}" min="0" max="100" ${r.actType==='買一送一'?'disabled':''} onchange="upd(${r.id},'actVal',+this.value||0)"></td>
-    <td class="c navy act-bg">${fM(m.estPrice)}</td>
-    <td class="sep input-bg"><input class="inp" style="text-align:center;font-weight:900" type="number" value="${r.targetMargin||0}" min="0" max="100" onchange="upd(${r.id},'targetMargin',+this.value||0)"></td>
-    <td class="c">${fM(m.targetProfit)}</td>
-    <td class="${cc(m.actualProfit)}">${fM(m.actualProfit)}</td>
-    <td class="${diffCls}">${fM(m.diff)}</td>
-    <td class="sep ${cc(m.myBefore)}">${fM(m.myBefore)}</td>
-    <td class="${afterCls}">${fM(m.myAfter)}</td>
-    <td class="c navy">${minText}</td>
-    <td class="c-l"><span class="result-pill ${m.statusClass}">${m.status}</span></td>
-${refCells}
-    <td class="sep" style="text-align:center"><button class="btn btn-del" onclick="delRow(${r.id})">刪除</button></td>
-  </tr>`}).join("")
+
+function startEdit(id){
+  document.getElementById(`nameDisplay${id}`).style.display='none';
+  const inp=document.getElementById(`nameInput${id}`);
+  inp.style.display='block';inp.focus();inp.select();
 }
-function renderFoot(){
-  const sumW26v=data.reduce((sum,r)=>sum+(+r.w26v||0),0),sumW27v=data.reduce((sum,r)=>sum+(+r.w27v||0),0);
-  const tw6=data.reduce((sum,r)=>sum+(+r.w26a||0),0),tw7=data.reduce((sum,r)=>sum+(+r.w27a||0),0),gap=tw7-tw6;
-  const stock=data.reduce((sum,r)=>sum+(+r.stock||0),0),stockAmt=data.reduce((sum,r)=>sum+(+r.stockAmt||0),0);
-  if(settings.showRef){
-    document.getElementById("tfoot").innerHTML=`<td class="sticky">參考合計</td><td colspan="23" class="sep"></td><td>${fN(sumW26v)}</td><td>${fN(sumW27v)}</td><td>${fM(tw6)}</td><td>${fM(tw7)}</td><td style="color:${gap>=0?'var(--green)':'var(--red)'}">${gap>=0?'+':''}${fM(gap)}</td><td>${fN(stock)}</td><td>${fM(stockAmt)}</td><td></td>`;
-  }else{
-    document.getElementById("tfoot").innerHTML=`<td class="sticky">參考欄已隱藏</td><td colspan="23" class="sep" style="text-align:left;color:#64748b">銷售與庫存參考不參與毛利、補差額與賺賠判斷。</td><td></td>`;
+function endEdit(id){
+  const inp=document.getElementById(`nameInput${id}`);
+  const val=inp.value.trim();
+  upd(id,'name', val || '未命名商品');
+  document.getElementById(`nameDisplay${id}`).style.display='';
+  inp.style.display='none';
+}
+
+function upd(id,field,val){
+  const r=data.find(x=>x.id===id);if(!r)return;
+  r[field]=val;
+  save();
+  if (field === 'name') {
+    const disp = document.getElementById(`nameDisplay${id}`);
+    if(disp) disp.innerHTML = esc(val) + '<span class="edit-icon">✏️</span>';
+  } else {
+    updateCalcCells(id);
   }
 }
-function upd(id,field,val){const r=data.find(x=>x.id===id);if(!r)return;r[field]=val;save();render()}
-function updActType(id,val){const r=data.find(x=>x.id===id);if(!r)return;r.actType=val;if(val==="買一送一")r.actVal=0;else if(!r.actVal)r.actVal=50;save();render()}
-function updType(id,val){const r=data.find(x=>x.id===id);if(!r)return;r.type=val;if(val==="寄賣")r.purchase=0;save();render()}
-function updSetting(field,val){
-  if(field==="showRef") settings.showRef=!!val;
-  else settings[field]=String(val||"").trim()||({refA:"W26",refB:"W27",stockLabel:"庫存"}[field]);
-  save();render()
+
+function updActType(id,val){
+  const r=data.find(x=>x.id===id);if(!r)return;
+  r.actType=val;
+  if(val==="買一送一") r.actVal=0;
+  else if(val==="第二件 X 折") r.actVal=80; 
+  else if(val==="單純折扣") r.actVal=85;    
+  save();
+  render(); 
 }
-function addRow(){const row={id:_uid++,name:"新商品",type:"一般",rsp:0,promo:0,purchase:0,cost:0,overhead:1.7,targetMargin:25,actBase:"Promo",actType:"單純折扣",actVal:100,w26v:0,w27v:0,w26a:0,w27a:0,stock:0,stockAmt:0};data.push(row);save();render();setTimeout(()=>{const tr=document.getElementById(`row${row.id}`);if(tr){tr.scrollIntoView({behavior:"smooth",block:"center"});const inp=tr.querySelector(".inp[type=text]");if(inp){inp.focus();inp.select()}}},80)}
+
+function updActVal(id, val) {
+  const r = data.find(x => x.id === id); if (!r) return;
+  r.actVal = parseFloat(val || 0); 
+  save(); 
+  updateCalcCells(id);
+}
+
+function updType(id,val){
+  const r=data.find(x=>x.id===id);if(!r)return;
+  r.type=val;if(val==="寄賣")r.purchase=0;
+  save();
+  render(); 
+}
+
+function updSetting(field,val){
+  if(field==="showRef")settings.showRef=!!val;
+  else settings[field]=String(val||"").trim()||({refA:"W26",refB:"W27",stockLabel:"庫存"}[field]);
+  save();render();
+}
+
+function addRow(){
+  const row={id:_uid++,name:"新商品",type:"一般",rsp:2000,promo:1600,purchase:1200,cost:600,overhead:1.7,targetMargin:25,actBase:"Promo",actType:"單純折扣",actVal:85,w26v:0,w27v:0,w26a:0,w27a:0,stock:0,stockAmt:0};
+  data.push(row);save();render();
+  setTimeout(()=>{const c=document.getElementById(`card${row.id}`);if(c){c.scrollIntoView({behavior:"smooth",block:"center"});startEdit(row.id);}},80);
+}
+
 function delRow(id){if(data.length<=1){alert("至少需保留一筆商品。");return}if(!confirm("確認刪除此商品？"))return;data=data.filter(r=>r.id!==id);save();render()}
-function clearAll(){if(!confirm("確定要重設資料並回到預設範例嗎？\n此動作會清除目前瀏覽器內的修改。"))return;localStorage.removeItem("wt_margin_tool_public_sample_v1");_uid=1;settings={refA:"W26",refB:"W27",stockLabel:"庫存",showRef:true};data=DEFAULTS.map(d=>({...d,id:_uid++}));save();render()}
-function exportCSV(){const a=settings.refA||"第一期",b=settings.refB||"第二期",s=settings.stockLabel||"庫存";const hdrs=["品名","合約","RSP","促銷價","屈臣氏採購報價","成本","管銷","成本含管銷","毛利35%","毛利30%","毛利25%","毛利20%","活動計算基準","活動類型","活動折扣參數","活動後平均售價","合約毛利%","屈臣氏應賺毛利/件","屈臣氏活動後毛利/件","需補差額/件","我方補差前賺賠/件","我方補差後賺賠/件","最低不賠售價","結果判斷",`(${a})量`,`(${b})量`,`(${a})金額`,`(${b})金額`,`(${a}) vs (${b}) 金額差額`,s,`${s}金額`];const rows=data.map(r=>{const m=calcRow(r);return[r.name,r.type,r.rsp,r.promo,r.type==="寄賣"?"寄賣":r.purchase,r.cost,r.overhead,m.cf,m.m35,m.m30,m.m25,m.m20,r.actBase,r.actType,r.actVal,m.estPrice,r.targetMargin,m.targetProfit,m.actualProfit,m.diff,m.myBefore,m.myAfter,m.minNoLoss==null?"無法不賠":m.minNoLoss,m.status,r.w26v,r.w27v,r.w26a,r.w27a,m.gap,r.stock,r.stockAmt].map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(",")});const csv=[hdrs.join(","),...rows].join("\n");const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});const link=document.createElement("a");link.href=URL.createObjectURL(blob);link.download="屈臣氏毛利與需補差額試算_最終版_"+new Date().toISOString().slice(0,10)+".csv";link.click();toast("📊 CSV 已匯出")}
+
+function exportCSV(){
+  const a=settings.refA||"W26",b=settings.refB||"W27",s=settings.stockLabel||"庫存";
+  const hdrs=["品名","合約","建議售價","促銷價","採購報價","成本","管銷","成本含管銷","毛利35%","毛利30%","毛利25%","毛利20%","活動基準","活動類型","折扣值","活動後均售價","合約毛利%","應收毛利/件","實際毛利/件","補貼金額/件","每件最終賺賠","商品不賠錢底價/件","公司實際損益",`(${a})銷售量`,`(${b})銷售量`,`(${a})金額`,`(${b})金額`,"差額",s,`${s}金額`];
+  const rows=data.map(r=>{
+    const m=calcRow(r);
+    const actValStr = r.actType === '買一送一' ? '0' : (r.actType === '第二件 X 折' ? r.actVal + '％' : r.actVal + '% off');
+    return[r.name,r.type,r.rsp,r.promo,r.type==="寄賣"?"寄賣":r.purchase,r.cost,r.overhead,m.cf,m.m35,m.m30,m.m25,m.m20,r.actBase,r.actType,actValStr,m.estPrice,r.targetMargin,m.targetProfit,m.actualProfit,m.diff,m.myAfter,m.minNoLoss==null?"無法不賠":m.minNoLoss,m.status,r.w26v,r.w27v,r.w26a,r.w27a,m.gap,r.stock,r.stockAmt].map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(",")});
+  const csv=[hdrs.join(","),...rows].join("\n");
+  const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});
+  const link=document.createElement("a");link.href=URL.createObjectURL(blob);link.download="毛利試算_"+new Date().toISOString().slice(0,10)+".csv";link.click();toast("📊 CSV 已匯出");
+}
+
 function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("on");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("on"),1800)}
-function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;")}
+function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
 load();render();
 </script>
 </body>
