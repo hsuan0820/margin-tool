@@ -278,8 +278,9 @@ function calcRow(r){
     targetProfit=Math.round(estPrice*targetRate);    // 活動均價 × 合約毛利%
     actualProfit=targetProfit;                       // 應收 = 實際
     diff=0;
-    myAfter=estPrice-targetProfit-cf;               // 活動均價 − 應收毛利 − cf
-    minNoLoss=cf+targetProfit;
+    myAfter=estPrice-targetProfit-cf;               // 活動均價 − 應收毛利 − 成本含管銷
+    // 寄賣不賠錢底價 = 成本含管銷 / (1 - 合約毛利%)
+    minNoLoss=targetRate<1 ? Math.round(cf / (1 - targetRate)) : null;
   }
 
   const marginBase=isBuy?purchase:cf;
@@ -289,6 +290,7 @@ function calcRow(r){
   const statusClass=myAfter>=0?"pill-good":"pill-loss";
   return{isBuy,cf,marginBase,estPrice,targetProfit,actualProfit,diff,myAfter,minNoLoss,m35,m30,m25,m20,gap,status,statusClass};
 }
+  
 
 function updateCalcCells(id) {
   const r = data.find(x => x.id === id);
@@ -490,8 +492,8 @@ function renderCards(){
           <th class="ch-watsons">應收毛利/件</th>
           <th class="ch-watsons">實際毛利/件</th>
           <th class="ch-warn">補貼金額/件</th>
-        <th class="ch-vendor ch-sep" colspan="2" style="line-height:1.3; white-space:normal; padding-left:4px; padding-right:4px;">
-           每件最終賺賠<br>
+       <th class="ch-vendor ch-sep" colspan="2" style="line-height:1.3; white-space:normal; padding-left:4px; padding-right:4px;">
+           實際利潤<br>
           <span style="font-size:10px;font-weight:normal;color:#6B7280;display:block;margin-top:2px;">(補貼通路後，公司每件實際淨賺)</span>
         </th>
           <th class="ch-vendor" colspan="${vendorLastColSpan}" style="line-height:1.3; white-space:normal;">商品不賠錢<br>底價/件</th>
@@ -579,15 +581,13 @@ function updActType(id,val){
   else if(val==="單純折扣") r.actVal=85;
   save();
   
-  // 1. 記錄當前頁面的垂直滾動位置與該商品表格的水平滾動位置
+  // 記錄當前滾動位置，重新渲染後保持視角不亂跑
   const windowY = window.scrollY;
   const rightPanel = document.querySelector(`#card${id} .right-panel`);
   const panelX = rightPanel ? rightPanel.scrollLeft : 0;
   
-  // 2. 重新渲染卡片
   renderCards();
   
-  // 3. 瞬間還原滾動位置，畫面完全不會亂跳
   window.scrollTo(0, windowY);
   const newRightPanel = document.querySelector(`#card${id} .right-panel`);
   if (newRightPanel) {
@@ -627,12 +627,12 @@ function delRow(id){if(data.length<=1){alert("至少需保留一筆商品。");r
 function exportExcel(){
   if(typeof XLSX==='undefined'){toast("⚠️ 載入中，請稍後再試");return;}
   const a=settings.refA||"W26",b=settings.refB||"W27",s=settings.stockLabel||"庫存";
-  const headers=[
+  cconst headers=[
     "品名","合約類型","建議售價","促銷價","採購報價",
     "成本","管銷","成本含管銷",
     "活動計算基準","活動類型","折扣/均價","活動後均價",
     "合約毛利%","應收毛利/件","實際毛利/件","補貼金額/件",
-    "每件最終賺賠","商品不賠錢底價/件","公司損益",
+    "實際利潤","商品不賠錢底價/件","公司損益",  // <--- 這裡改了
     `${a}銷售量`,`${b}銷售量`,`${a}金額`,`${b}金額`,"差額",s,`${s}金額`
   ];
   const rows=data.map(r=>{
