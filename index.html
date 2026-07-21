@@ -577,10 +577,18 @@ function updActType(id,val){
   if(val==="買一送一") r.actVal=0;
   else if(val==="第二件 X 折") r.actVal=80;
   else if(val==="單純折扣") r.actVal=85;
-  // 自訂均價：actVal 保留原值，customPrice 另存
-  save();render();
+  save();
+  // 只重新渲染這張卡片，不影響捲動位置
+  const card=document.getElementById(`card${id}`);
+  if(card){
+    const scrollY=window.scrollY;
+    renderCards();
+    window.scrollTo(0,scrollY);
+  } else {
+    render();
+  }
 }
-
+  
 function updActVal(id, val) {
   const r = data.find(x => x.id === id); if (!r) return;
   r.actVal = parseFloat(val || 0); 
