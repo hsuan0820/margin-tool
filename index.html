@@ -578,16 +578,15 @@ function updActType(id,val){
   else if(val==="第二件 X 折") r.actVal=80;
   else if(val==="單純折扣") r.actVal=85;
   save();
-  // 只重新渲染這張卡片，不影響捲動位置
-  const card=document.getElementById(`card${id}`);
-  if(card){
+  if(val==="自訂均價"){
     const scrollY=window.scrollY;
     renderCards();
-    window.scrollTo(0,scrollY);
+    requestAnimationFrame(()=>window.scrollTo(0,scrollY));
   } else {
-    render();
+    updateCalcCells(id);
   }
 }
+
   
 function updActVal(id, val) {
   const r = data.find(x => x.id === id); if (!r) return;
