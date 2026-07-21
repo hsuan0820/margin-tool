@@ -55,7 +55,7 @@ input:checked+.slider:before{transform:translateX(20px)}
 .btn:hover{opacity:.85; transform: translateY(-1px)}
 .btn-add{background:var(--white);color:var(--blue);border:1.5px solid var(--blue);display:flex;align-items:center;gap:6px;font-size:15px;box-shadow:0 2px 4px rgba(30,100,180,.1)}
 .btn-del{background:var(--white);color:var(--red);border:1.5px solid var(--red);font-size:14px;padding:8px 16px;display:flex;align-items:center;justify-content:center;gap:6px;width:100%}
-.btn-export{background:var(--green);color:#fff;display:flex;align-items:center;gap:6px}
+.btn-export{background:var(--green);color:#fff}
 
 /* ── Main content ── */
 .main{padding:24px 28px;max-width:1800px;margin:0 auto}
@@ -194,7 +194,7 @@ input:checked+.slider:before{transform:translateX(20px)}
       <label>第一期：<input id="refAInput" type="text" onchange="updSetting('refA',this.value)" onblur="updSetting('refA',this.value)"></label>
       <label>第二期：<input id="refBInput" type="text" onchange="updSetting('refB',this.value)" onblur="updSetting('refB',this.value)"></label>
       <label>庫存欄位：<input id="stockInput" type="text" onchange="updSetting('stockLabel',this.value)" onblur="updSetting('stockLabel',this.value)" style="width:80px"></label>
-    <button class="btn btn-export" onclick="exportExcel()"> 匯出 Excel</button>
+    <button class="btn" style="background:var(--green);color:#fff;display:flex;align-items:center;gap:6px" onclick="exportExcel()">📊 匯出 Excel</button>
     </div>
   </div>
 </div>
@@ -230,6 +230,7 @@ function normalizeData(){
     if(r.stock==null)r.stock=0;if(r.stockAmt==null)r.stockAmt=0;
     if(r.targetMargin==null)r.targetMargin=25;if(r.type==null)r.type="一般";
     if(r.actBase==null)r.actBase="Promo";if(r.actType==null)r.actType="單純折扣";if(r.actVal==null)r.actVal=100;
+    if(r.customPrice==null)r.customPrice=0;
   });
   settings={refA:"W26",refB:"W27",stockLabel:"庫存",showRef:true,...settings};
 }
@@ -247,12 +248,13 @@ const fN=n=>{if(n==null||isNaN(n))return"—";return Math.round(n).toLocaleStrin
 const posNeg=n=>n>0.5?"pos-blue":n<-0.5?"neg-red":"nu";
 
 function calcActivityPrice(r){
+  if(r.actType==="自訂均價") return Math.round(+r.customPrice||0);
   const base=(r.actBase==="RSP"?(+r.rsp||0):(+r.promo||0));
   const factor=(+r.actVal||0)/100;
   let price=base;
-  if(r.actType==="買一送一") price = base*0.5;
-  else if(r.actType==="第二件 X 折") price = (base + (base * factor)) / 2; 
-  else if(r.actType==="單純折扣") price = base * factor;     
+  if(r.actType==="買一送一") price=base*0.5;
+  else if(r.actType==="第二件 X 折") price=(base+(base*factor))/2;
+  else if(r.actType==="單純折扣") price=base*factor;
   return Math.round(price);
 }
 
@@ -260,35 +262,31 @@ function calcRow(r){
   const isBuy=r.type==="一般";
   const cf=Math.round((+r.cost||0)*(+r.overhead||0));
   const purchase=+r.purchase||0;
-  
-  const targetRate=(+r.targetMargin||0)/100;
   const estPrice=calcActivityPrice(r);
+  const targetRate=(+r.targetMargin||0)/100;
 
-  let targetProfit, actualProfit, diff, myAfter, minNoLoss;
-
+  let targetProfit,actualProfit,diff,myAfter,minNoLoss;
   if(isBuy){
-    // ── 一般買斷 ──
-    targetProfit=Math.round(purchase*targetRate);   // 採購報價 × 合約毛利%
-    actualProfit=estPrice-purchase;                 // 活動均價 − 採購報價
+    // 一般買斷
+    targetProfit=Math.round(purchase*targetRate);    // 採購報價 × 合約毛利%
+    actualProfit=estPrice-purchase;                  // 活動均價 − 採購報價
     diff=Math.max(0,targetProfit-actualProfit);
-    myAfter=(purchase-cf)-diff;                     // 採購報價 − cf − 補貼
+    myAfter=(purchase-cf)-diff;
     minNoLoss=purchase>=cf?(cf+targetProfit):null;
   } else {
-    // ── 寄賣 ──
-    targetProfit=Math.round(estPrice*targetRate);   // 活動均價 × 合約毛利%
-    actualProfit=targetProfit;                      // 應收 = 實際（永遠相等）
-    diff=0;                                         // 永遠不需補貼
+    // 寄賣
+    targetProfit=Math.round(estPrice*targetRate);    // 活動均價 × 合約毛利%
+    actualProfit=targetProfit;                       // 應收 = 實際
+    diff=0;
     myAfter=estPrice-targetProfit-cf;               // 活動均價 − 應收毛利 − cf
     minNoLoss=cf+targetProfit;
   }
 
   const marginBase=isBuy?purchase:cf;
-  
   const m35=Math.round(marginBase*.35),m30=Math.round(marginBase*.30),m25=Math.round(marginBase*.25),m20=Math.round(marginBase*.20);
   const gap=(+r.w27a||0)-(+r.w26a||0);
   const status=myAfter>=0?"獲利":"虧損";
   const statusClass=myAfter>=0?"pill-good":"pill-loss";
-  
   return{isBuy,cf,marginBase,estPrice,targetProfit,actualProfit,diff,myAfter,minNoLoss,m35,m30,m25,m20,gap,status,statusClass};
 }
 
@@ -366,7 +364,8 @@ function renderCards(){
 
     const vendorSecSpan = rc ? 3 : 11;
     const vendorLastColSpan = rc ? 1 : 9;
-    const actValDisabled=r.actType==='買一送一'?'disabled':'';
+    const isCustom=r.actType==='自訂均價';
+    const actValDisabled=(r.actType==='買一送一'||isCustom)?'disabled':'';
 
     return `
 <div class="product-card" id="card${r.id}">
@@ -463,6 +462,7 @@ function renderCards(){
               <option ${r.actType==='買一送一'?'selected':''}>買一送一</option>
               <option ${r.actType==='第二件 X 折'?'selected':''}>第二件 X 折</option>
               <option ${r.actType==='單純折扣'?'selected':''}>單純折扣</option>
+              <option ${r.actType==='自訂均價'?'selected':''}>自訂均價</option>
             </select>
           </td>
           <td class="inp-cell">
@@ -471,10 +471,13 @@ function renderCards(){
                      value="${r.actVal||0}"
                      ${actValDisabled} style="text-align:center; min-width:30px; padding:6px 2px;"
                      onchange="updActVal(${r.id},this.value)">
-              <span class="unit">%</span>
+              <span class="unit">${isCustom?'—':'%'}</span>
             </div>
           </td>
-          <td class="cv pos-blue" id="estPrice_${r.id}">${fM(m.estPrice)}</td>
+          ${isCustom
+            ? `<td class="inp-cell" style="border-left:2px solid #9CA3AF"><input class="inp" type="number" value="${r.customPrice||0}" min="0" style="font-weight:800;color:#1E40AF;" onchange="upd(${r.id},'customPrice',+this.value||0)"></td>`
+            : `<td class="cv pos-blue" id="estPrice_${r.id}">${fM(m.estPrice)}</td>`
+          }
         </tr>
 
         <tr class="sec-row">
@@ -564,7 +567,6 @@ function upd(id,field,val){
     const disp = document.getElementById(`nameDisplay${id}`);
     if(disp) disp.innerHTML = esc(val) + '<span class="edit-icon">✏️</span>';
   } else {
-    // ── 寄賣 ──
     updateCalcCells(id);
   }
 }
@@ -573,10 +575,10 @@ function updActType(id,val){
   const r=data.find(x=>x.id===id);if(!r)return;
   r.actType=val;
   if(val==="買一送一") r.actVal=0;
-  else if(val==="第二件 X 折") r.actVal=80; 
-  else if(val==="單純折扣") r.actVal=85;    
+  else if(val==="第二件 X 折") r.actVal=80;
+  else if(val==="單純折扣") r.actVal=85;
   save();
-  render(); 
+  renderCard(id);  // ← 只重新渲染這張卡片
 }
 
 function updActVal(id, val) {
@@ -600,40 +602,52 @@ function updSetting(field,val){
 }
 
 function addRow(){
-  const row={id:_uid++,name:"新商品",type:"一般",rsp:2000,promo:1600,purchase:1200,cost:600,overhead:1.7,targetMargin:25,actBase:"Promo",actType:"單純折扣",actVal:85,w26v:0,w27v:0,w26a:0,w27a:0,stock:0,stockAmt:0};
+  const row={id:_uid++,name:"新商品",type:"一般",rsp:2000,promo:1600,purchase:1200,cost:600,overhead:1.7,targetMargin:25,actBase:"Promo",actType:"單純折扣",actVal:85,customPrice:0,w26v:0,w27v:0,w26a:0,w27a:0,stock:0,stockAmt:0};
   data.push(row);save();render();
   setTimeout(()=>{const c=document.getElementById(`card${row.id}`);if(c){c.scrollIntoView({behavior:"smooth",block:"center"});startEdit(row.id);}},80);
 }
 
 function delRow(id){if(data.length<=1){alert("至少需保留一筆商品。");return}if(!confirm("確認刪除此商品？"))return;data=data.filter(r=>r.id!==id);save();render()}
 
-function exportCSV(){
-  const a=settings.refA||"W26",b=settings.refB||"W27",s=settings.stockLabel||"庫存";
-  const hdrs=["品名","合約","建議售價","促銷價","採購報價","成本","管銷","成本含管銷","毛利35%","毛利30%","毛利25%","毛利20%","活動基準","活動類型","折扣值","活動後均售價","合約毛利%","應收毛利/件","實際毛利/件","補貼金額/件","每件最終賺賠","商品不賠錢底價/件","公司實際損益",`(${a})銷售量`,`(${b})銷售量`,`(${a})金額`,`(${b})金額`,"差額",s,`${s}金額`];
-  const rows=data.map(r=>{
-    const m=calcRow(r);
-    const actValStr = r.actType === '買一送一' ? '0' : (r.actType === '第二件 X 折' ? r.actVal + '％' : r.actVal + '% off');
-    return[r.name,r.type,r.rsp,r.promo,r.type==="寄賣"?"寄賣":r.purchase,r.cost,r.overhead,m.cf,m.m35,m.m30,m.m25,m.m20,r.actBase,r.actType,actValStr,m.estPrice,r.targetMargin,m.targetProfit,m.actualProfit,m.diff,m.myAfter,m.minNoLoss==null?"無法不賠":m.minNoLoss,m.status,r.w26v,r.w27v,r.w26a,r.w27a,m.gap,r.stock,r.stockAmt].map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(",")});
-  const csv=[hdrs.join(","),...rows].join("\n");
-  const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});
-  const link=document.createElement("a");link.href=URL.createObjectURL(blob);link.download="毛利試算_"+new Date().toISOString().slice(0,10)+".csv";link.click();toast("📊 CSV 已匯出");
-}
-
 function exportExcel(){
   if(typeof XLSX==='undefined'){toast("⚠️ 載入中，請稍後再試");return;}
   const a=settings.refA||"W26",b=settings.refB||"W27",s=settings.stockLabel||"庫存";
-  const headers=["品名","合約類型","建議售價","促銷價","採購報價","成本","管銷","成本含管銷","毛利35%","毛利30%","毛利25%","毛利20%","活動計算基準","活動類型","折扣%","活動後均價","合約毛利%","應收毛利/件","實際毛利/件","補貼金額/件","實際利潤/件","不賠底價/件","損益",`${a}銷售量`,`${b}銷售量`,`${a}金額`,`${b}金額`,"差額",s,`${s}金額`];
+  const headers=[
+    "品名","合約類型","建議售價","促銷價","採購報價",
+    "成本","管銷","成本含管銷",
+    "活動計算基準","活動類型","折扣/均價","活動後均價",
+    "合約毛利%","應收毛利/件","實際毛利/件","補貼金額/件",
+    "每件最終賺賠","商品不賠錢底價/件","公司損益",
+    `${a}銷售量`,`${b}銷售量`,`${a}金額`,`${b}金額`,"差額",s,`${s}金額`
+  ];
   const rows=data.map(r=>{
     const m=calcRow(r);
-    return[r.name,r.type,r.rsp,r.promo,r.type==="寄賣"?"—":r.purchase,r.cost,r.overhead,m.cf,m.m35,m.m30,m.m25,m.m20,r.actBase==="RSP"?"建議售價":"促銷價",r.actType,r.actVal+"%",m.estPrice,r.targetMargin+"%",m.targetProfit,m.actualProfit,m.diff,m.myAfter,m.minNoLoss==null?"無法不賠":m.minNoLoss,m.status,r.w26v,r.w27v,r.w26a,r.w27a,m.gap,r.stock,r.stockAmt];
+    const actValStr=r.actType==='買一送一'?'—':(r.actType==='自訂均價'?(r.customPrice+'元'):(r.actVal+'%'));
+    return[
+      r.name,r.type,r.rsp,r.promo,
+      r.type==="寄賣"?"—":r.purchase,
+      r.cost,r.overhead,m.cf,
+      r.actBase==="RSP"?"建議售價":"促銷價",r.actType,actValStr,m.estPrice,
+      r.targetMargin+"%",m.targetProfit,m.actualProfit,m.diff,
+      m.myAfter,m.minNoLoss==null?"無法不賠":m.minNoLoss,m.status,
+      r.w26v,r.w27v,r.w26a,r.w27a,m.gap,r.stock,r.stockAmt
+    ];
   });
   const wb=XLSX.utils.book_new();
   const ws=XLSX.utils.aoa_to_sheet([headers,...rows]);
-  ws['!cols']=[{wch:18},{wch:10},{wch:12},{wch:10},{wch:10},{wch:8},{wch:6},{wch:12},{wch:9},{wch:9},{wch:9},{wch:9},{wch:12},{wch:14},{wch:7},{wch:12},{wch:9},{wch:12},{wch:12},{wch:12},{wch:14},{wch:14},{wch:8},{wch:10},{wch:10},{wch:12},{wch:12},{wch:12},{wch:8},{wch:12}];
+  ws['!cols']=[
+    {wch:18},{wch:10},{wch:12},{wch:10},{wch:10},
+    {wch:8},{wch:6},{wch:12},
+    {wch:12},{wch:14},{wch:10},{wch:12},
+    {wch:10},{wch:12},{wch:12},{wch:12},
+    {wch:14},{wch:16},{wch:8},
+    {wch:10},{wch:10},{wch:12},{wch:12},{wch:12},{wch:8},{wch:12}
+  ];
   XLSX.utils.book_append_sheet(wb,ws,"毛利試算");
   XLSX.writeFile(wb,"毛利試算_"+new Date().toISOString().slice(0,10)+".xlsx");
-  toast(" Excel 已匯出");
+  toast("📊 Excel 已匯出");
 }
+
 function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("on");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("on"),1800)}
 function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
 load();render();
