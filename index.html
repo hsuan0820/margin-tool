@@ -578,16 +578,24 @@ function updActType(id,val){
   else if(val==="第二件 X 折") r.actVal=80;
   else if(val==="單純折扣") r.actVal=85;
   save();
-  if(val==="自訂均價"){
-    const scrollY=window.scrollY;
-    renderCards();
-    requestAnimationFrame(()=>window.scrollTo(0,scrollY));
-  } else {
-    updateCalcCells(id);
+  
+  // 1. 記錄當前頁面的垂直滾動位置與該商品表格的水平滾動位置
+  const windowY = window.scrollY;
+  const rightPanel = document.querySelector(`#card${id} .right-panel`);
+  const panelX = rightPanel ? rightPanel.scrollLeft : 0;
+  
+  // 2. 重新渲染卡片
+  renderCards();
+  
+  // 3. 瞬間還原滾動位置，畫面完全不會亂跳
+  window.scrollTo(0, windowY);
+  const newRightPanel = document.querySelector(`#card${id} .right-panel`);
+  if (newRightPanel) {
+    newRightPanel.scrollLeft = panelX;
   }
 }
-
   
+
 function updActVal(id, val) {
   const r = data.find(x => x.id === id); if (!r) return;
   r.actVal = parseFloat(val || 0); 
