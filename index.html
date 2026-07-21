@@ -627,7 +627,7 @@ function delRow(id){if(data.length<=1){alert("至少需保留一筆商品。");r
 function exportExcel(){
   if(typeof XLSX==='undefined'){toast("⚠️ 載入中，請稍後再試");return;}
   const a=settings.refA||"W26",b=settings.refB||"W27",s=settings.stockLabel||"庫存";
-  cconst headers=[
+  const headers=[
     "品名","合約類型","建議售價","促銷價","採購報價",
     "成本","管銷","成本含管銷",
     "活動計算基準","活動類型","折扣/均價","活動後均價",
