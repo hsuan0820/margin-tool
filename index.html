@@ -519,8 +519,8 @@ function calcRow(r){
 
   // 應有毛利：
   //   買斷 = 採購報價 × 合約毛利%
-  //   寄賣 = 成本含管銷 × 合約毛利%
-  targetProfit=round4((isBuy?purchase:cf)*targetRate);
+  // 買斷=採購報價×毛利%；寄賣=活動後均價×毛利%（屈臣氏依實際賣價抽成）
+  targetProfit=round4((isBuy?purchase:estPrice)*targetRate);
 
   if(isBuy){
     // 實際毛利 = 活動後均價 − 採購報價
@@ -542,13 +542,13 @@ function calcRow(r){
   if(isBuy){
     minNoLoss=purchase>=cf?round4(cf+purchase*targetRate):null;
   }else{
-    minNoLoss=targetRate<1?round4(cf*(1+targetRate)):null;
+    minNoLoss=targetRate<1?round4(cf/(1-targetRate)):null;
   }
 
   const actualMargin=netReceipt>0?round4((myAfter/netReceipt)*100):null;
   const totalSubsidy=round4(diff*activityQty);
   const totalProfit=round4(myAfter*activityQty);
-  const marginBase=isBuy?purchase:cf;
+  const marginBase=isBuy?purchase:estPrice;
   const m35=round4(marginBase*.35),m30=round4(marginBase*.30),m25=round4(marginBase*.25),m20=round4(marginBase*.20);
   const gap=round4((+r.w27a||0)-(+r.w26a||0));
   const status=myAfter>=0?"獲利":"虧損";
